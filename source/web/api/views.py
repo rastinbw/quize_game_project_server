@@ -14,9 +14,8 @@ class Register(View):
     def post(self, request, *args, **kwargs):
         # Check whether required data is provided or not
         if not request.POST:
-            message = {'result_code': constant.no_data_provided}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.no_data_provided),
                 status="400",
             )
 
@@ -25,9 +24,8 @@ class Register(View):
         try:
             deserialized_data = json.loads(data)
         except ValueError:
-            message = {'result_code': constant.invalid_json_format}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.invalid_json_format),
                 status="400",
             )
 
@@ -48,25 +46,22 @@ class Register(View):
 
         # Check whether input username is already in database or not
         if User.objects.filter(username=username).exists():
-            message = {'result_code': constant.repetitive_username}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.repetitive_username),
                 status="400",
             )
 
         # Check whether input email is already in database or not
         if email != '' and User.objects.filter(email=email).exists():
-            message = {'result_code': constant.repetitive_email}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.repetitive_email),
                 status="400",
             )
 
         # Check whether input phone number is already in database or not
         if phone_number != '' and Profile.objects.filter(phone_number=phone_number).exists():
-            message = {'result_code': constant.repetitive_phone_number}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.repetitive_phone_number),
                 status="400",
             )
 
@@ -92,8 +87,7 @@ class Register(View):
 
         # preparing and sending result to client
         # TODO this message must be encrypted
-        message = {'result_code': constant.success,
-                   'token': token.token, }
+        message = {'token': token.token, }
 
         return JsonResponse(
             Generator.generate_result(message=message, key=deserialized_data.get('key')),
@@ -106,9 +100,8 @@ class Login(View):
     def post(self, request, *args, **kwargs):
         # Check whether required data is provided or not
         if not request.POST:
-            message = {'result_code': constant.no_data_provided}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.no_data_provided),
                 status="400",
             )
 
@@ -117,9 +110,8 @@ class Login(View):
         try:
             deserialized_data = json.loads(data)
         except ValueError:
-            message = {'result_code': constant.invalid_json_format}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.invalid_json_format),
                 status="400",
             )
 
@@ -137,9 +129,8 @@ class Login(View):
 
         # Check whether user provided username or email
         if username == '' and email == '':
-            message = {'result_code': constant.no_username_or_email}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.no_username_or_email),
                 status="400",
             )
 
@@ -148,9 +139,8 @@ class Login(View):
             try:
                 user = User.objects.get(username=username, password=password)
             except User.DoesNotExist:
-                message = {'result_code': constant.wrong_username_and_password}
                 return JsonResponse(
-                    Generator.generate_result(message=message),
+                    Generator.generate_result(result_code=constant.wrong_username_and_password),
                     status="400",
                 )
 
@@ -159,16 +149,14 @@ class Login(View):
             try:
                 user = User.objects.get(email=email, password=password)
             except User.DoesNotExist:
-                message = {'result_code': constant.wrong_email_and_password}
                 return JsonResponse(
-                    Generator.generate_result(message=message),
+                    Generator.generate_result(result_code=constant.wrong_email_and_password),
                     status="400",
                 )
 
         # preparing and sending result to client
         # TODO this message must be encrypted
-        message = {'result_code': constant.success,
-                   'token': user.token.token, }
+        message = {'token': user.token.token, }
 
         return JsonResponse(
             Generator.generate_result(message=message, key=deserialized_data.get('key')),
@@ -188,8 +176,7 @@ class GuestRegister(View):
 
         # preparing and sending result to client
         # TODO this message must be encrypted
-        message = {'result_code': constant.success,
-                   'guest_id': guest.guest_id, }
+        message = {'guest_id': guest.guest_id, }
 
         return JsonResponse(
             Generator.generate_result(message=message),
@@ -199,9 +186,8 @@ class GuestRegister(View):
     def post(self, request):
         # Check whether required data is provided or not
         if not request.POST:
-            message = {'result_code': constant.no_data_provided}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.no_data_provided),
                 status="400",
             )
 
@@ -210,9 +196,8 @@ class GuestRegister(View):
         try:
             deserialized_data = json.loads(data)
         except ValueError:
-            message = {'result_code': constant.invalid_json_format}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.invalid_json_format),
                 status="400",
             )
 
@@ -231,9 +216,8 @@ class GuestRegister(View):
         try:
             guest = Guest.objects.get(guest_id=guest_id)
         except Guest.DoesNotExist:
-            message = {'result_code': constant.invalid_guest_id}
             return JsonResponse(
-                Generator.generate_result(message=message),
+                Generator.generate_result(result_code=constant.invalid_guest_id),
                 status="400",
             )
 
@@ -243,10 +227,8 @@ class GuestRegister(View):
         guest.save()
 
         # preparing and sending result to client
-        message = {'result_code': constant.success}
-
         return JsonResponse(
-            Generator.generate_result(message=message),
+            Generator.generate_result(result_code=constant.success),
             status=200,
         )
 
