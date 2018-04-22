@@ -21,7 +21,12 @@ from web.api import views
 urlpatterns = [
     path('user/login/', views.Login.as_view(), name='user-login'),
     path('user/register/', views.Register.as_view(), name='user-register'),
-    path('user/save/', views.save)
+    path('guest/register/', views.GuestRegister.as_view(), name='guest-register'),
+
+
+    path('generate/', views.generate_private_key),
+    path('test/', views.Test.as_view())
+    # path('get/', views.getMessage)
     # path('users/<int:id>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
     # path('users/<int:id>/update/', views.UserUpdateAPIView.as_view(), name='user-update'),
     # path('users/<int:id>/delete/', views.UserDestroyAPIView.as_view(), name='user-delete'),

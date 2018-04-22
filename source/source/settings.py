@@ -14,7 +14,7 @@ import os
 import datetime
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+RSA_DIR = os.path.join(BASE_DIR, 'rsa')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
@@ -25,7 +25,8 @@ SECRET_KEY = 'sr#xp-qn+3=yyrmi%1+ci9&1co##c_7^ugq4q%d7sdk47l_2-j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] #Make sure your host IP is a string
+
 
 
 # Application definition
@@ -125,3 +126,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
+
