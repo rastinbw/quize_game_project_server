@@ -138,12 +138,10 @@ class Generator(object):
             aes = AESEncryption(key=key, iv=iv)
             enc_message = aes.encrypt(encoder.encode(message))
             result = {'is_encrypted': True,
-                      'key': str(key),
                       'result_code': result_code,
                       'message': str(enc_message)}
         else:
             result = {'is_encrypted': False,
-                      'key': '',
                       'result_code': result_code,
                       'message': message}
 
@@ -161,6 +159,7 @@ class Generator(object):
         key, iv = Generator.get_key_and_iv(key)
         aes = AESEncryption(key=key, iv=iv)
         obj = aes.decrypt(enc)
+        print(json.loads(obj))
         return json.loads(obj)
 
 

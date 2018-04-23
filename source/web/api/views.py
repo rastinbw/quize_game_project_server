@@ -16,7 +16,6 @@ class Register(View):
         if not request.POST:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.no_data_provided),
-                status="400",
             )
 
         # Get the provided json data and try to deserialize it to python dictionary
@@ -26,7 +25,6 @@ class Register(View):
         except ValueError:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.invalid_json_format),
-                status="400",
             )
 
         # Decrypt message in deserialized_data body if its encrypted
@@ -48,21 +46,18 @@ class Register(View):
         if User.objects.filter(username=username).exists():
             return JsonResponse(
                 Generator.generate_result(result_code=constant.repetitive_username),
-                status="400",
             )
 
         # Check whether input email is already in database or not
         if email != '' and User.objects.filter(email=email).exists():
             return JsonResponse(
                 Generator.generate_result(result_code=constant.repetitive_email),
-                status="400",
             )
 
         # Check whether input phone number is already in database or not
         if phone_number != '' and Profile.objects.filter(phone_number=phone_number).exists():
             return JsonResponse(
-                Generator.generate_result(result_code=constant.repetitive_phone_number),
-                status="400",
+                Generator.generate_result(result_code=constant.repetitive_phone_number)
             )
 
         # saving user in database
@@ -91,7 +86,6 @@ class Register(View):
 
         return JsonResponse(
             Generator.generate_result(message=message, key=deserialized_data.get('key')),
-            status=200,
         )
 
 
@@ -102,7 +96,6 @@ class Login(View):
         if not request.POST:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.no_data_provided),
-                status="400",
             )
 
         # Get the provided json data and try to deserialize it to python dictionary
@@ -112,11 +105,10 @@ class Login(View):
         except ValueError:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.invalid_json_format),
-                status="400",
             )
 
         # Decrypt message in deserialized_data body if its encrypted
-        if deserialized_data.get('isEncrypted'):
+        if deserialized_data.get('is_encrypted'):
             obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
                                                    deserialized_data.get('key'))
         else:
@@ -131,7 +123,6 @@ class Login(View):
         if username == '' and email == '':
             return JsonResponse(
                 Generator.generate_result(result_code=constant.no_username_or_email),
-                status="400",
             )
 
         # Check whether user with input username/password exists in database
@@ -141,7 +132,6 @@ class Login(View):
             except User.DoesNotExist:
                 return JsonResponse(
                     Generator.generate_result(result_code=constant.wrong_username_and_password),
-                    status="400",
                 )
 
         # Check whether user with input email/password exists in database
@@ -151,7 +141,6 @@ class Login(View):
             except User.DoesNotExist:
                 return JsonResponse(
                     Generator.generate_result(result_code=constant.wrong_email_and_password),
-                    status="400",
                 )
 
         # preparing and sending result to client
@@ -160,7 +149,6 @@ class Login(View):
 
         return JsonResponse(
             Generator.generate_result(message=message, key=deserialized_data.get('key')),
-            status=200,
         )
 
 
@@ -180,7 +168,6 @@ class GuestRegister(View):
 
         return JsonResponse(
             Generator.generate_result(message=message),
-            status=200,
         )
 
     def post(self, request):
@@ -188,7 +175,6 @@ class GuestRegister(View):
         if not request.POST:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.no_data_provided),
-                status="400",
             )
 
         # Get the provided json data and try to deserialize it to python dictionary
@@ -198,7 +184,6 @@ class GuestRegister(View):
         except ValueError:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.invalid_json_format),
-                status="400",
             )
 
         # Decrypt message in deserialized_data body if its encrypted
@@ -218,7 +203,6 @@ class GuestRegister(View):
         except Guest.DoesNotExist:
             return JsonResponse(
                 Generator.generate_result(result_code=constant.invalid_guest_id),
-                status="400",
             )
 
         # updating guest information
@@ -229,7 +213,6 @@ class GuestRegister(View):
         # preparing and sending result to client
         return JsonResponse(
             Generator.generate_result(result_code=constant.success),
-            status=200,
         )
 
 # ************************************************************************************************
