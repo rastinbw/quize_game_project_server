@@ -130,16 +130,20 @@ class Generator(object):
         return prefix + uuid
 
     @staticmethod
-    def generate_result(message="", key=None):
+    def generate_result(message="", result_code=1000, key=None):
         encoder = json.JSONEncoder()
 
         if key is not None:
             key, iv = Generator.get_key_and_iv(key)
             aes = AESEncryption(key=key, iv=iv)
             enc_message = aes.encrypt(encoder.encode(message))
-            result = {'is_encrypted': True, 'key': str(key), 'message': str(enc_message)}
+            result = {'is_encrypted': True,
+                      'result_code': result_code,
+                      'message': str(enc_message)}
         else:
-            result = {'is_encrypted': False, 'key': '', 'message': message}
+            result = {'is_encrypted': False,
+                      'result_code': result_code,
+                      'message': message}
 
         return encoder.encode(result)
 
@@ -155,6 +159,7 @@ class Generator(object):
         key, iv = Generator.get_key_and_iv(key)
         aes = AESEncryption(key=key, iv=iv)
         obj = aes.decrypt(enc)
+        print(json.loads(obj))
         return json.loads(obj)
 
 
