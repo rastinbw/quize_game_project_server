@@ -133,7 +133,7 @@ class Generator(object):
     def generate_result(message="", result_code=1000, key=None):
         encoder = json.JSONEncoder()
 
-        if key is not None:
+        if key is not None and key is not "":
             key, iv = Generator.get_key_and_iv(key)
             aes = AESEncryption(key=key, iv=iv)
             enc_message = aes.encrypt(encoder.encode(message))

@@ -81,7 +81,6 @@ class Register(View):
         token.save()
 
         # preparing and sending result to client
-        # TODO this message must be encrypted
         message = {'token': token.token, }
 
         return JsonResponse(

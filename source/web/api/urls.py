@@ -15,17 +15,17 @@ Including another URLconf
 """
 
 from django.urls import path
-from web.api import views
+from web.api import registration_views
 
 
 urlpatterns = [
-    path('user/login/', views.Login.as_view(), name='user-login'),
-    path('user/register/', views.Register.as_view(), name='user-register'),
-    path('guest/register/', views.GuestRegister.as_view(), name='guest-register'),
+    path('user/login/', registration_views.Login.as_view(), name='user-login'),
+    path('user/register/', registration_views.Register.as_view(), name='user-register'),
+    path('guest/register/', registration_views.GuestRegister.as_view(), name='guest-register'),
 
 
-    path('generate/', views.generate_private_key),
-    path('test/', views.Test.as_view())
+    path('generate/', registration_views.generate_private_key),
+    path('test/', registration_views.Test.as_view())
     # path('get/', views.getMessage)
     # path('users/<int:id>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
     # path('users/<int:id>/update/', views.UserUpdateAPIView.as_view(), name='user-update'),
