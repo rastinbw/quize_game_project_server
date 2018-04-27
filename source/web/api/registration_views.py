@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from web.models import Token, Profile, Guest
-from web.helpers import RSAEncryption, Generator, JsonResponse, AESEncryption
+from web.helpers import RSAEncryption, Generator, JsonResponse
 from django.http import HttpResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
