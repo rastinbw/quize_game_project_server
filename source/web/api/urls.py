@@ -26,9 +26,5 @@ urlpatterns = [
 
     path('generate/', registration_views.generate_private_key),
     path('test/', registration_views.Test.as_view())
-    # path('get/', views.getMessage)
-    # path('users/<int:id>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
-    # path('users/<int:id>/update/', views.UserUpdateAPIView.as_view(), name='user-update'),
-    # path('users/<int:id>/delete/', views.UserDestroyAPIView.as_view(), name='user-delete'),
 ]
 
