@@ -23,8 +23,6 @@ urlpatterns = [
     path('user/register/', registration_views.Register.as_view(), name='user-register'),
     path('guest/register/', registration_views.GuestRegister.as_view(), name='guest-register'),
 
-
     path('generate/', registration_views.generate_private_key),
-    path('test/', registration_views.Test.as_view())
 ]
 
