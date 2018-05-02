@@ -55,7 +55,7 @@ class Register(View):
             )
 
         # Check whether input phone number is already in database or not
-        if phone_number != '' and Profile.objects.filter(phone_number=phone_number).exists():
+        if phone_number != '' and Profile.objects.filter(phoneNumber=phone_number).exists():
             return JsonResponse(
                 Generator.generate_result(result_code=constant.repetitive_phone_number)
             )
