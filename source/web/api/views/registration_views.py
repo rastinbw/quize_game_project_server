@@ -1,12 +1,14 @@
-from django.contrib.auth.models import User
-from web.models import Token, Profile, Guest
-from web.helpers import RSAEncryption, Generator, JsonResponse
-from django.http import HttpResponse
 import json
-from django.views.decorators.csrf import csrf_exempt
+
+import web.consts as constant
+from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
-import web.consts as constant
+from django.views.decorators.csrf import csrf_exempt
+
+from web.helpers import RSAEncryption, Generator, JsonResponse
+from web.models import Token, Profile, Guest
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -219,4 +221,5 @@ class GuestRegister(View):
 def generate_private_key(request):
     RSAEncryption().generate_keys()
     return HttpResponse("Generated Successfully")
+
 

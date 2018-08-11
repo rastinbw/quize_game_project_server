@@ -14,6 +14,7 @@ import os
 import datetime
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
 RSA_DIR = os.path.join(BASE_DIR, 'rsa')
 
 # Quick-start development settings - unsuitable for production
@@ -32,17 +33,18 @@ ALLOWED_HOSTS = ['*'] #Make sure your host IP is a string
 # Application definition
 
 INSTALLED_APPS = [
+    ##########3rd party#########
+    'channels',
+    'rest_framework',
+    'django_cron',
+    ##########Local############
+    'web',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'web.apps.WebConfig',
-    ##########Local############
-    'web',
-    ##########3rd party#########
-    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +58,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'source.urls'
+ASGI_APPLICATION = 'source.routing.application'
 
 TEMPLATES = [
     {
@@ -73,7 +76,11 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'source.wsgi.application'
+CRON_CLASSES = [
+    "web.manager.tasks.BarzakhChecker",
+]
+
+# WSGI_APPLICATION = 'source.wsgi.application'
 
 
 # Database
@@ -111,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -119,11 +126,22 @@ USE_L10N = True
 
 USE_TZ = True
 
+CELERY_BROKER_URL = 'amqp://localhost'
+CELERY_RESULT_BACKEND = 'amqp://localhost'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tehran'
 
+CELERY_BEAT_SCHEDULE = {
+    'check_barzakh': {
+        'task': 'web.tasks.check_barzakh',
+        'schedule': 30,
+    },
+}
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
 
-TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
 

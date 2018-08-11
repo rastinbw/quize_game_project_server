@@ -1,5 +1,5 @@
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'first_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'source.settings')
 
 import django
 django.setup()
@@ -7,9 +7,10 @@ django.setup()
 
 # FAKE POP SCRIPT
 import random
-from web.models import Guest
+from web.models import Guest, Barzakh
 from faker import Faker
-
+from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
 
 fakegen = Faker()
 fields = ['riazi', 'tajrobi', 'ensani']
@@ -28,12 +29,23 @@ def add_guest():
     return guest
 
 
-def populate(n=5):
+def add_user():
+    username = 'user_{}'.format(fakegen.name().replace(" ", ""))
+    email = '{}@example.com'.format(username)
+    password = get_random_string(50)
+    user = User.objects.get_or_create(username=username, email=email, password=password)[0]
+
+    Barzakh.objects.create(user=user,
+                           field=random.choice(fields),
+                           grade=random.choice(grades))
+
+
+def populate(n=2):
     for entry in range(n):
-        add_guest()
+        add_user()
 
 
 if __name__ == '__main__':
     print("populating script!")
-    populate(10)
+    populate()
     print("populating done!")

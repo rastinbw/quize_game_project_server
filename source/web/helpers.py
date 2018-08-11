@@ -12,6 +12,7 @@ import six
 import json
 
 
+
 class PublicKeyFileExists(Exception):
     pass
 

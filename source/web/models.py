@@ -1,7 +1,23 @@
-from django.db import models
-from django.contrib.auth.models import User
-from web.helpers import Generator
 from uuid import uuid4
+from django.contrib.auth.models import User
+from django.db import models
+from web.helpers import Generator
+from django.conf import settings
+from django.db.models import Q
+
+
+class Barzakh(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    field = models.CharField(max_length=128, blank=True, default='')
+    grade = models.CharField(max_length=128, blank=True, default='')
+    experience = models.FloatField(default=0)
+    created = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+    class Meta:
+        ordering = ('created',)
+
+    def __str__(self):
+        return "{0}: {1}".format(self.created, self.user.username)
 
 
 class Profile(models.Model):
@@ -12,6 +28,8 @@ class Profile(models.Model):
     field = models.CharField(max_length=128, blank=True, default='')
     grade = models.CharField(max_length=128, blank=True, default='')
     phoneNumber = models.CharField(max_length=128, blank=True, default='')
+    experience = models.FloatField(default=0)
+    consumable = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ('created',)
@@ -50,7 +68,4 @@ class Guest(models.Model):
 
     def __str__(self):
         return "{0}:{1}".format(self.created, self.guest_id)
-
-
-
 
