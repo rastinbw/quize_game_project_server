@@ -16,7 +16,7 @@ Including another URLconf
 
 from django.urls import path
 
-from web.api.views import registration_views
+from web.api.rest.views import registration_views
 
 urlpatterns = [
     path('user/login/', registration_views.Login.as_view(), name='user-login'),
