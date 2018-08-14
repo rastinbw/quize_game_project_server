@@ -10,7 +10,8 @@ class Barzakh(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=128, blank=True, default='')
     grade = models.CharField(max_length=128, blank=True, default='')
-    experience = models.FloatField(default=0)
+    level = models.IntegerField(default=0)
+    xp = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
 
     class Meta:
