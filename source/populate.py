@@ -7,7 +7,7 @@ django.setup()
 
 # FAKE POP SCRIPT
 import random
-from web.models import Guest, Barzakh
+from web.models import Guest, Purge
 from faker import Faker
 from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
@@ -35,9 +35,9 @@ def add_user():
     password = get_random_string(50)
     user = User.objects.get_or_create(username=username, email=email, password=password)[0]
 
-    Barzakh.objects.create(user=user,
-                           field=random.choice(fields),
-                           grade=random.choice(grades))
+    Purge.objects.create(user=user,
+                         field=random.choice(fields),
+                         grade=random.choice(grades))
 
 
 def populate(n=2):

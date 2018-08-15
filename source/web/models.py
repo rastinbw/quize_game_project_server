@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Q
 
 
-class Barzakh(models.Model):
+class Purge(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=128, blank=True, default='')
     grade = models.CharField(max_length=128, blank=True, default='')
@@ -70,3 +70,11 @@ class Guest(models.Model):
     def __str__(self):
         return "{0}:{1}".format(self.created, self.guest_id)
 
+class Contestant(models.Model):
+    profile = models.ForeignKey(Profile,on_delete=models.CASCADE)
+    state = models.CharField(max_length=128, blank=True, default='')
+    contest_id = models.CharField(max_length=128, blank=True, default='')
+    join_flag = models.BooleanField()
+
+    def __str__(self):
+        return "{0}:{1}".format(self.profile.user.username, self.contest_id)
