@@ -104,6 +104,17 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': '127.0.0.1:6379',
+        'OPTIONS': {
+            'DB': 1,
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+        },
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

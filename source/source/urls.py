@@ -21,5 +21,4 @@ urlpatterns = [
     path('test/', views.test),
     path('admin/', admin.site.urls),
     path('api/', include(('web.api.urls', 'web'), namespace='api')),
-
 ]

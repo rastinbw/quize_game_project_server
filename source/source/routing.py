@@ -10,10 +10,7 @@ application = ProtocolTypeRouter({
     'websocket': AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                # web.api.socket.routing.websocket_urlpatterns,
-                [
-                    path('api/chat/<slug:room_name>', consumers.ChatConsumer),
-                ]
+               web.api.socket.routing.websocket_urlpatterns,
             )
         )
     )
