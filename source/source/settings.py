@@ -58,12 +58,23 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'source.urls'
+#ASGI and channel layer settings
+
 ASGI_APPLICATION = 'source.routing.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,7 +91,7 @@ CRON_CLASSES = [
     "web.manager.tasks.BarzakhChecker",
 ]
 
-# WSGI_APPLICATION = 'source.wsgi.application'
+WSGI_APPLICATION = 'source.wsgi.application'
 
 
 # Database

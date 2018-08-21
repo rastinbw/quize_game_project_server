@@ -14,15 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path
-
+from django.urls import path, include
 from web.api.rest.views import registration_views
+from web.api.socket import views
 
 urlpatterns = [
-    path('user/login/', registration_views.Login.as_view(), name='user-login'),
-    path('user/register/', registration_views.Register.as_view(), name='user-register'),
-    path('guest/register/', registration_views.GuestRegister.as_view(), name='guest-register'),
-
-    path('generate/', registration_views.generate_private_key),
+	path('user/login/', registration_views.Login.as_view(), name='user-login'),
+	path('user/register/', registration_views.Register.as_view(), name='user-register'),
+	path('guest/register/', registration_views.GuestRegister.as_view(), name='guest-register'),
+	path('generate/', registration_views.generate_private_key),
+	path('chat/', views.index, name="index"),
+	path('chat/<slug:room_name>', views.room, name="room"),
 ]
-

@@ -20,5 +20,6 @@ from web import views
 urlpatterns = [
     path('test/', views.test),
     path('admin/', admin.site.urls),
-    path('api/', include(('web.api.rest.urls', 'web'), namespace='api')),
+    path('api/', include(('web.api.urls', 'web'), namespace='api')),
+
 ]
