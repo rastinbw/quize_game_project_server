@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import web.consts as constant
 from django.contrib.auth.models import User
@@ -6,220 +7,243 @@ from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-
 from web.helpers import RSAEncryption, Generator, JsonResponse
-from web.models import Token, Profile, Guest
+from web.models import Token, Profile
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Register(View):
-    def post(self, request, *args, **kwargs):
-        # Check whether required data is provided or not
-        if not request.POST:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.no_data_provided),
-            )
+	def post(self, request, *args, **kwargs):
+		# Check whether required data is provided or not
+		if not request.POST:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.no_data_provided),
+			)
 
-        # Get the provided json data and try to deserialize it to python dictionary
-        data = request.POST.get('data')
-        try:
-            deserialized_data = json.loads(data)
-        except ValueError:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.invalid_json_format),
-            )
+		# Get the provided json data and try to deserialize it to python dictionary
+		data = request.POST.get('data')
+		try:
+			deserialized_data = json.loads(data)
+		except ValueError:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.invalid_json_format),
+			)
 
-        # Decrypt message in deserialized_data body if its encrypted
-        if deserialized_data.get('is_encrypted'):
-            obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
-                                                   deserialized_data.get('key'))
-        else:
-            obj = deserialized_data.get('message')
+		# Decrypt message in deserialized_data body if its encrypted
+		if deserialized_data.get('is_encrypted'):
+			obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
+												   deserialized_data.get('key'))
+		else:
+			obj = deserialized_data.get('message')
 
-        # Navigating through 'user info' in message part of data and save it into database
-        username = obj.get('username')
-        email = obj.get('email', '')
-        password = obj.get('password')
+		# Navigating through 'user info' in message part of data and save it into database
+		token = obj.get('token')
+		username = obj.get('username')
+		email = obj.get('email', '')
+		password = obj.get('password')
 
-        city_id = obj.get('city_id')
-        phone_number = obj.get('phone_number', '')
+		city_id = obj.get('city_id')
+		phone_number = obj.get('phone_number', '')
 
-        # Check whether input username is already in database or not
-        if User.objects.filter(username=username).exists():
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.repetitive_username),
-            )
+		# Check whether input username is already in database or not
+		if User.objects.filter(username=username).exists():
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.repetitive_username),
+			)
 
-        # Check whether input email is already in database or not
-        if email != '' and User.objects.filter(email=email).exists():
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.repetitive_email),
-            )
+		# Check whether input email is already in database or not
+		if email != '' and User.objects.filter(email=email).exists():
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.repetitive_email),
+			)
 
-        # Check whether input phone number is already in database or not
-        if phone_number != '' and Profile.objects.filter(phoneNumber=phone_number).exists():
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.repetitive_phone_number)
-            )
+		# Check whether input phone number is already in database or not
+		if phone_number != '' and Profile.objects.filter(phoneNumber=phone_number).exists():
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.repetitive_phone_number)
+			)
 
-        # saving user in database
-        user = User.objects.create(
-            username=username,
-            password=password,
-            email=email,
-        )
-        user.save()
+		# saving user in database
+		user = Profile.objects.create(
+			username=username,
+			password=password,
+			email=email,
+		)
+		user.save()
+		# making a profile for previous user
+		profile = Profile.objects.create(
+			user=user,
+			cityId=city_id,
+			phoneNumber=phone_number,
+			guest=False,
+		)
+		profile.save()
+		# it checks if the user is guest
+		if Token.objects.filter(token=token).exists() and Profile.objects.filter(guest__isnull=True):
+			existance_token = Token.objects.get(token)
+			existance_token
+		# create new token for new user
+		elif not Token.objects.filter(token=token).exists():
+			token = Token.objects.create(user=user)
+			token.save()
+		else:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.invalid_token)
+			)
 
-        # making a profile for previous user
-        profile = Profile.objects.create(
-            user=user,
-            cityId=city_id,
-            phoneNumber=phone_number,
-        )
-        profile.save()
+		# preparing and sending result to client
+		message = {'token': token.token, }
 
-        # creating a token for previous user
-        token = Token.objects.create(user=user)
-        token.save()
-
-        # preparing and sending result to client
-        message = {'token': token.token, }
-
-        return JsonResponse(
-            Generator.generate_result(message=message, key=deserialized_data.get('key')),
-        )
+		return JsonResponse(
+			Generator.generate_result(message=message, key=deserialized_data.get('key')),
+		)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Login(View):
-    def post(self, request, *args, **kwargs):
-        # Check whether required data is provided or not
-        if not request.POST:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.no_data_provided),
-            )
+	def post(self, request, *args, **kwargs):
+		# Check whether required data is provided or not
+		if not request.POST:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.no_data_provided),
+			)
 
-        # Get the provided json data and try to deserialize it to python dictionary
-        data = request.POST.get('data')
-        try:
-            deserialized_data = json.loads(data)
-        except ValueError:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.invalid_json_format),
-            )
+		# Get the provided json data and try to deserialize it to python dictionary
+		data = request.POST.get('data')
+		try:
+			deserialized_data = json.loads(data)
+		except ValueError:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.invalid_json_format),
+			)
 
-        # Decrypt message in deserialized_data body if its encrypted
-        if deserialized_data.get('is_encrypted'):
-            obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
-                                                   deserialized_data.get('key'))
-        else:
-            obj = deserialized_data.get('message')
+		# Decrypt message in deserialized_data body if its encrypted
+		if deserialized_data.get('is_encrypted'):
+			obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
+												   deserialized_data.get('key'))
+		else:
+			obj = deserialized_data.get('message')
 
-        # Navigating through 'user info' in message part of data and try to authorize it
-        username = obj.get('username', '')
-        email = obj.get('email', '')
-        password = obj.get('password')
+		# Navigating through 'user info' in message part of data and try to authorize it
+		username = obj.get('username', '')
+		email = obj.get('email', '')
+		password = obj.get('password')
 
-        # Check whether user provided username or email
-        if username == '' and email == '':
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.no_username_or_email),
-            )
+		# Check whether user provided username or email
+		if username == '' and email == '':
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.no_username_or_email),
+			)
 
-        # Check whether user with input username/password exists in database
-        if username != '':
-            try:
-                user = User.objects.get(username=username, password=password)
-            except User.DoesNotExist:
-                return JsonResponse(
-                    Generator.generate_result(result_code=constant.wrong_username_and_password),
-                )
+		# Check whether user with input username/password exists in database
+		if username != '':
+			try:
+				user = User.objects.get(username=username, password=password)
+			except User.DoesNotExist:
+				return JsonResponse(
+					Generator.generate_result(result_code=constant.wrong_username_and_password),
+				)
 
-        # Check whether user with input email/password exists in database
-        else:
-            try:
-                user = User.objects.get(email=email, password=password)
-            except User.DoesNotExist:
-                return JsonResponse(
-                    Generator.generate_result(result_code=constant.wrong_email_and_password),
-                )
+		# Check whether user with input email/password exists in database
+		else:
+			try:
+				user = User.objects.get(email=email, password=password)
+			except User.DoesNotExist:
+				return JsonResponse(
+					Generator.generate_result(result_code=constant.wrong_email_and_password),
+				)
 
-        # preparing and sending result to client
-        # TODO this message must be encrypted
-        message = {'token': user.token.token, }
+		# preparing and sending result to client
+		# TODO this message must be encrypted
+		message = {'token': user.token.token, }
 
-        return JsonResponse(
-            Generator.generate_result(message=message, key=deserialized_data.get('key')),
-        )
+		return JsonResponse(
+			Generator.generate_result(message=message, key=deserialized_data.get('key')),
+		)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class GuestRegister(View):
-    def get(self, request):
-        """
-        this view creates a guest and
-        returns the generated guest uuid for
-        authentication to client
-        """
-        guest = Guest.objects.create()
+	def get(self, request):
 
-        # preparing and sending result to client
-        # TODO this message must be encrypted
-        message = {'guest_id': guest.guest_id, }
+		"""
+		this view creates a guest and
+		returns the generated guest uuid for
+		authentication to client
+		"""
 
-        return JsonResponse(
-            Generator.generate_result(message=message),
-        )
+		guest = User.objects.create(
+			username=Generator.generate_uuid(User,
+											 'username',
+											 'User',
+											 lambda: uuid4().hex[:9]),
+		)
+		guest.save()
+		# making a profile for previous user
+		profile = Profile.objects.create(
+			user=guest,
+		)
+		profile.save()
+		token = Token.objects.create(
+			user=guest
+		)
+		token.save()
+		# preparing and sending result to client
+		# TODO this message must be encrypted
+		message = {'token': token.token, }
 
-    def post(self, request):
-        # Check whether required data is provided or not
-        if not request.POST:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.no_data_provided),
-            )
+		return JsonResponse(
+			Generator.generate_result(message=message),
+		)
 
-        # Get the provided json data and try to deserialize it to python dictionary
-        data = request.POST.get('data')
-        try:
-            deserialized_data = json.loads(data)
-        except ValueError:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.invalid_json_format),
-            )
+	def post(self, request):
+		# Check whether required data is provided or not
+		if not request.POST:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.no_data_provided),
+			)
 
-        # Decrypt message in deserialized_data body if its encrypted
-        if deserialized_data.get('is_encrypted'):
-            obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
-                                                   deserialized_data.get('key'))
-        else:
-            obj = deserialized_data.get('message')
+		# Get the provided json data and try to deserialize it to python dictionary
+		data = request.POST.get('data')
+		try:
+			deserialized_data = json.loads(data)
+		except ValueError:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.invalid_json_format),
+			)
 
-        # Navigating through 'guest info' in message part of data and try to update it
-        guest_id = obj.get('guest_id')
-        guest_field = obj.get('guest_field')
-        guest_grade = obj.get('guest_grade')
+		# Decrypt message in deserialized_data body if its encrypted
+		if deserialized_data.get('is_encrypted'):
+			obj = Generator.generate_dict_from_enc(deserialized_data.get('message'),
+												   deserialized_data.get('key'))
+		else:
+			obj = deserialized_data.get('message')
 
-        try:
-            guest = Guest.objects.get(guest_id=guest_id)
-        except Guest.DoesNotExist:
-            return JsonResponse(
-                Generator.generate_result(result_code=constant.invalid_guest_id),
-            )
+		# Navigating through 'guest info' in message part of data and try to update it
+		guest_token = obj.get('token')
+		guest_field = obj.get('field')
+		guest_grade = obj.get('grade')
 
-        # updating guest information
-        guest.guest_field = guest_field
-        guest.guest_grade = guest_grade
-        guest.save()
+		try:
+			guest = User.objects.get(token=guest_token)
+		except User.DoesNotExist:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.invalid_token),
+			)
 
-        # preparing and sending result to client
-        return JsonResponse(
-            Generator.generate_result(result_code=constant.success),
-        )
+		# updating guest information
+		guest.guest_field = guest_field
+		guest.guest_grade = guest_grade
+		guest.save()
+
+		# preparing and sending result to client
+		return JsonResponse(
+			Generator.generate_result(result_code=constant.success),
+		)
+
 
 # ************************************************************************************************
 
 def generate_private_key(request):
-    RSAEncryption().generate_keys()
-    return HttpResponse("Generated Successfully")
-
-
+	RSAEncryption().generate_keys()
+	return HttpResponse("Generated Successfully")

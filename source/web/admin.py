@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Token, Profile, Guest, Purge
+from .models import Token, Profile, Purge
 
 # Register your models here.
 
@@ -11,4 +11,4 @@ class BarzakhAdmin(admin.ModelAdmin):
 admin.site.register(Purge, BarzakhAdmin)
 admin.site.register(Token)
 admin.site.register(Profile)
-admin.site.register(Guest)
+# admin.site.register(Guest)
