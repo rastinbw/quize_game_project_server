@@ -6,7 +6,6 @@ from django.conf import settings
 from django.db.models import Q
 from datetime import *
 
-"""
 class Purge(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=128, blank=True, default='')
@@ -14,7 +13,7 @@ class Purge(models.Model):
     level = models.IntegerField(default=0)
     xp = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
-"""
+
 #TODO what should u do in purge
 class PurgeManager(models.Manager):
     pass
@@ -89,12 +88,19 @@ class Contestant(models.Model):
 
 class Contest(models.Model):
     # TODO do the related__name stuff
-    first_user = models.ForeignKey(Contestant, on_delete=models.CASCADE(), related_name='')
-    second_user = models.ForeignKey(Contestant, on_delete=models.CASCADE(), related_name='', default=None)
-    field = models.CharField(max_length=128, blank=True, default=first_user.profile.field)
-    grade = models.CharField(max_length=128, blank=True, default=first_user.profile.grade)
-    level = models.IntegerField(default=first_user.profile.level)
+    first_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='first_user')
+    second_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='second_user', default=None)
+    field = models.CharField(max_length=128, blank=True, default='')
+    grade = models.CharField(max_length=128, blank=True, default='')
+    level = models.IntegerField(default='')
     xp = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+    def save(self, *args, **kwargs):
+        self.field = self.first_user.profile.field
+        self.grade = self.first_user.profile.grade
+        self.level = self.first_user.profile.level
+
+        super(Contest, self).save(*args, **kwargs)
 
     objects = PurgeManager()

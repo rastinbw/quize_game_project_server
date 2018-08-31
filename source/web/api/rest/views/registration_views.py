@@ -37,7 +37,7 @@ class Register(View):
 			obj = deserialized_data.get('message')
 
 		# Navigating through 'user info' in message part of data and save it into database
-		token = obj.get('token')
+		str_token = obj.get('token')
 		username = obj.get('username')
 		email = obj.get('email', '')
 		password = obj.get('password')
@@ -63,40 +63,70 @@ class Register(View):
 				Generator.generate_result(result_code=constant.repetitive_phone_number)
 			)
 
-		# saving user in database
-		user = Profile.objects.create(
-			username=username,
-			password=password,
-			email=email,
-		)
-		user.save()
-		# making a profile for previous user
-		profile = Profile.objects.create(
-			user=user,
-			cityId=city_id,
-			phoneNumber=phone_number,
-			guest=False,
-		)
-		profile.save()
-		# it checks if the user is guest
-		if Token.objects.filter(token=token).exists() and Profile.objects.filter(guest__isnull=True):
-			existance_token = Token.objects.get(token)
-			existance_token
-		# create new token for new user
-		elif not Token.objects.filter(token=token).exists():
-			token = Token.objects.create(user=user)
-			token.save()
-		else:
-			return JsonResponse(
-				Generator.generate_result(result_code=constant.invalid_token)
+
+		# the guests registering
+		if Token.objects.filter(token=str_token).exists():
+			token = Token.objects.filter(token=str_token).get()
+
+			guest_user = token.user
+
+			guest_user.username = username
+			guest_user.password = password
+			guest_user.email = email
+			guest_user.save()
+
+			Profile.objects.filter(user=guest_user).update(
+				user=guest_user,
+				cityId=city_id,
+				phoneNumber=phone_number,
+				guest=False,
 			)
 
-		# preparing and sending result to client
-		message = {'token': token.token, }
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.success),
+			)
+		else:
+			return JsonResponse(
+				Generator.generate_result(result_code=constant.invalid_token),
+			)
 
-		return JsonResponse(
-			Generator.generate_result(message=message, key=deserialized_data.get('key')),
-		)
+
+		# saving user in database
+		# user = User.objects.create(
+		# 	username=username,
+		# 	password=password,
+		# 	email=email,
+		# )
+		# user.save()
+		# # making a profile for previous user
+		# profile = Profile.objects.create(
+		# 	user=user,
+		# 	cityId=city_id,
+		# 	phoneNumber=phone_number,
+		# 	guest=False,
+		# )
+		# profile.save()
+        #
+		# # creating a token for previous user
+		# token = Token.objects.create(user=user)
+		# token.save()
+
+		# preparing and sending result to client
+		# message = {'token': token.token, }
+
+		# it checks if the user is guest
+
+
+		# # create new token for new user
+		# elif not Token.objects.filter(token=token).exists():
+		# 	token = Token.objects.create(user=user)
+		# 	token.save()
+		# else:
+		# 	return JsonResponse(
+		# 		Generator.generate_result(result_code=constant.invalid_token)
+		# 	)
+
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -190,7 +220,7 @@ class GuestRegister(View):
 		token.save()
 		# preparing and sending result to client
 		# TODO this message must be encrypted
-		message = {'token': token.token, }
+		message = {'token': token.token,'guest':guest.username }
 
 		return JsonResponse(
 			Generator.generate_result(message=message),
@@ -225,22 +255,33 @@ class GuestRegister(View):
 		guest_grade = obj.get('grade')
 
 		try:
-			guest = User.objects.get(token=guest_token)
+			# guest = User.objects.get(token=guest_token)
+			# if Token.objects.filter(token=guest_token).exists():
+			guest_token = Token.objects.filter(token=guest_token).get()
+			guest_user = guest_token.user
+
 		except User.DoesNotExist:
 			return JsonResponse(
 				Generator.generate_result(result_code=constant.invalid_token),
 			)
 
 		# updating guest information
-		guest.guest_field = guest_field
-		guest.guest_grade = guest_grade
-		guest.save()
+		# guest.profile.field = guest_field
+		# guest.profile.grade = guest_grade
+		# guest.save()
+
+		Profile.objects.filter(user=guest_user).update(
+			user=guest_user,
+			field=guest_field,
+			grade=guest_grade,
+			guest=True,
+		)
+
 
 		# preparing and sending result to client
 		return JsonResponse(
 			Generator.generate_result(result_code=constant.success),
 		)
-
 
 # ************************************************************************************************
 
