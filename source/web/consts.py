@@ -16,10 +16,6 @@ wrong_username_and_password = 1204
 wrong_email_and_password = 1205
 invalid_token = 1206
 
-<<<<<<< HEAD
-
 ########################## Socket ##########################
 # app startup events
 user_update_info_splash = 'updateUserInfo_splash'
-=======
->>>>>>> 4ea77d8b3719b444fad0f301f785d38cec352feb

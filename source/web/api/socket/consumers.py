@@ -6,10 +6,11 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.consumer import AsyncConsumer
 import json
 from web import consts
+from web import helpers
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
-	async def connect(self):
+class ChatConsumer(AsyncConsumer):
+	async def websocket_connect(self, event):
 		# self.room_name = self.scope['url_route']['kwargs']['room_name']
 		# self.room_group_name = 'chat_{}'.format(self.room_name)
 		#
@@ -17,7 +18,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
 		# 	self.room_group_name,
 		# 	self.channel_name,
 		# )
-		await self.accept()
+
+		await self.send(
+			{
+				"type": "websocket.accept"
+			}
+		)
+		# room_name = self.scope['url_route']['kwargs']['room_name']
+		# this_user = self.scope['user']
+		# print(room_name, this_user)
 
 	async def disconnect(self, close_code):
 		# Leave room group
@@ -29,7 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 		pass
 
 	# Receive message from WebSocket
-	async def receive(self, text_data):
+	async def websocket_receive(self, text_data):
 		text_data_json = json.loads(text_data)
 		message = text_data_json['message']
 		event = message['event']
@@ -39,38 +48,53 @@ class ChatConsumer(AsyncWebsocketConsumer):
 			user_name = data['username']
 			app_version = data['appVersion']
 			self.send(
-				json.dumps(
+				helpers.Generator.generate_socket_send_json(
 					{
-						'message': {'event':
-										{consts.user_update_info_splash},
-									'data': {
-										'isTokenValid': True,
-										'restrictionInfo': {
-											'			isGuest': True, 'unBanDate': None
-										}},
-									'notifs': {
-											'appUpdate': None,
-											'serverMessage': None
-										}
-									}
+						'event': consts.user_update_info_splash,
+						'isTokenValid': True,
+						'restrictionInfo': None,
+						### resteriction info ###
+						'isGuest': None,
+						'unBanDate': None,
+						### notifs ###
+						'appUpdate': None,
+						'serverMessage': None,
 					}
-				)
+				))
+			'''
+			json.dumps(
+				{
+
+					'message': {'event':
+									{consts.user_update_info_splash},
+								'data': {
+									'isTokenValid': True,
+									'restrictionInfo': {
+										'			isGuest': True, 'unBanDate': None
+									}},
+								'notifs': {
+									'appUpdate': None,
+									'serverMessage': None
+								}
+								}
+				}
 			)
+			'''
 
-	# # Send message to room group
-	# await self.channel_layer.group_send(
-	# 	self.room_group_name,
-	# 	{
-	# 		'type': 'chat_message',
-	# 		'message': message,
-	# 	}
-	# )
+		# # Send message to room group
+		# await self.channel_layer.group_send(
+		# 	self.room_group_name,
+		# 	{
+		# 		'type': 'chat_message',
+		# 		'message': message,
+		# 	}
+		# )
 
-	# Receive message from room group
-	async def chat_message(self, event):
-		message = event['message']
+		# Receive message from room group
+		async def chat_message(self, event):
+			message = event['message']
 
-		# Send message to WebSocket
-		await self.send(text_data=json.dumps({
-			'message': message,
-		}))
+			# Send message to WebSocket
+			await self.send(text_data=json.dumps({
+				'message': message,
+			}))
