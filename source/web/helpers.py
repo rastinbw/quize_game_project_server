@@ -14,6 +14,7 @@ from web import consts
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "source.settings")
 
+
 class PublicKeyFileExists(Exception):
 	pass
 
@@ -178,12 +179,13 @@ class Generator(object):
 		return restriction_info
 
 	@staticmethod
-	def generate_data_for_json(isTokenValid=False):
+	def generate_data_for_json(restriction_info, isTokenValid=False, token = None):
 		restriction_info = Generator.generate_data_for_restriction_info()
-		keys = ["isTokenValid", "restriction_info"]
+		keys = ["isTokenValid", "restriction_info", "token"]
 		data = dict.fromkeys(keys)
 		data["isTokenValid"] = isTokenValid
 		data["restriction_info"] = restriction_info
+		data["token"] = token
 		return data
 
 	@staticmethod
@@ -197,8 +199,8 @@ class Generator(object):
 	@staticmethod
 	def generate_socket_send_json(**kwargs):
 		event = Generator.generate_event_for_json(kwargs.get('event'))
-		data = Generator.generate_data_for_json(kwargs.get('isTokenValid'), kwargs.get('restrictionInfo'))
-		notifs = Generator.generate_data_for_json(kwargs.get('appUpdate'), kwargs.get('serverMessage'))
+		data = Generator.generate_data_for_json(kwargs.get('isTokenValid'), kwargs.get('restrictionInfo'), kwargs.get('token'))
+		notifs = Generator.generate_notifs_for_json(kwargs.get('appUpdate'), kwargs.get('serverMessage'))
 
 		message = dict(message={'event': event,
 								'data': data,

@@ -18,4 +18,6 @@ invalid_token = 1206
 
 ########################## Socket ##########################
 # app startup events
+onconnect_check = 'ONCONNECT'
 user_update_info_splash = 'updateUserInfo_splash'
+user_update_token = 'update_user_token'
