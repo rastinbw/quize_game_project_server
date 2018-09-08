@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 import time
+from web.models import Contest
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -33,5 +34,9 @@ def test(request):
 	print(cache.get(user))
 	time.sleep(2)
 	print(cache.get(user))
+
+
+	username = "Rastin"
+	Contest.objects.search_opponent(username)
 
 	return HttpResponse("hello")
