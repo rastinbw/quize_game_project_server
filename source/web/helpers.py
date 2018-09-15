@@ -10,7 +10,9 @@ import base64
 import six
 import json
 import os
+from random import randint
 from web import consts
+from web import models
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "source.settings")
 
@@ -167,8 +169,10 @@ class Generator(object):
 
 	@staticmethod
 	def generate_event_for_json(event=None):
-		event = dict(event=event)
-		return event
+		key = ["event"]
+		result_event = dict.fromkeys(key)
+		result_event["event"] = event
+		return result_event
 
 	@staticmethod
 	def generate_data_for_restriction_info(isGuest=False, unBanDate=None):
@@ -179,7 +183,7 @@ class Generator(object):
 		return restriction_info
 
 	@staticmethod
-	def generate_data_for_json(restriction_info, isTokenValid=False, token = None):
+	def generate_data_for_json(restriction_info, isTokenValid=False, token=None):
 		restriction_info = Generator.generate_data_for_restriction_info()
 		keys = ["isTokenValid", "restriction_info", "token"]
 		data = dict.fromkeys(keys)
@@ -199,12 +203,25 @@ class Generator(object):
 	@staticmethod
 	def generate_socket_send_json(**kwargs):
 		event = Generator.generate_event_for_json(kwargs.get('event'))
-		data = Generator.generate_data_for_json(kwargs.get('isTokenValid'), kwargs.get('restrictionInfo'), kwargs.get('token'))
+		data = Generator.generate_data_for_json(kwargs.get('isTokenValid'), kwargs.get('restrictionInfo'),
+												kwargs.get('token'))
 		notifs = Generator.generate_notifs_for_json(kwargs.get('appUpdate'), kwargs.get('serverMessage'))
 
-		message = dict(message={'event': event,
+		message = dict(message={**event,
 								'data': data,
 								'notifs': notifs})
 		result_encoder = json.JSONEncoder()
-		result_encoder.encode(message)
+		result_encoder = result_encoder.encode(message)
+		print('the result encoded JSON: {}'.format(result_encoder))
 		return result_encoder
+
+	# TODO build a cid generator and add it as the route for the user
+	# it must be combinition of user + uuid(16bit)
+
+	@staticmethod
+	def generate_contest_id(user_name):
+		socket_link = Generator.generate_uuid(models.Contest, 'CID')[:16]
+		this_user = models.User.objects.filter(username=user_name).get()
+		socket_link_uuid = str(this_user.username) + socket_link
+		print("the user uuid is : {}".format(socket_link_uuid))
+		return socket_link_uuid
