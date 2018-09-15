@@ -14,7 +14,7 @@ class Purge(models.Model):
     level = models.IntegerField(default=0)
     xp = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
-
+git
 
 # TODO contest_id must be add when the first user fill a room
 # this manager is for handling the waiting contests
