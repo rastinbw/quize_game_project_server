@@ -30,13 +30,12 @@ def test(request):
 	# 	'tuple': (1, 2, 3, 4),
 	# 	'dict': {'A': 1, 'B': 2},
 	# }, timeout=1)
-	#
+    #
 	# print(cache.get(user))
 	# time.sleep(2)
 	# print(cache.get(user))
-	#
-	#
-	# username = "alireza"
-	# Contest.objects.search_opponent(username)
-	# Generator.generate_contest_id(username)
+
+
+	username = "Alireza"
+	Contest.objects.search_opponent(username)
 	return HttpResponse("hello")

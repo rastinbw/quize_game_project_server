@@ -70,8 +70,6 @@ class ChatConsumer(AsyncConsumer):
 
 		'''
 
-
-
 	# self.room_name = self.scope['url_route']['kwargs']['room_name']
 	# self.room_group_name = 'chat_{}'.format(self.room_name)
 	#
@@ -90,11 +88,11 @@ class ChatConsumer(AsyncConsumer):
         need to call super() all the time.
         """
 
-		# Leave room group
-		# await self.channel_layer.group_discard(
-		# 	self.room_group_name,
-		# 	self.channel_name
-		# )
+	# Leave room group
+	# await self.channel_layer.group_discard(
+	# 	self.room_group_name,
+	# 	self.channel_name
+	# )
 	'''
 			try:
 			for group in self.groups:
@@ -109,7 +107,6 @@ class ChatConsumer(AsyncConsumer):
 			self.channel_name,
 		)
 	'''
-
 
 	async def user_splash_json_update(self, text_data):
 		'''
