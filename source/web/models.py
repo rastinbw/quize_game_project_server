@@ -16,37 +16,85 @@ class Purge(models.Model):
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
 
 
-# TODO what should u do in purge
+# TODO contest_id must be add when the first user fill a room
 # this manager is for handling the waiting contests
 
 class PurgeManager(models.Manager):
+    # this manger returns a contest as a room for the players
     def search_opponent(self, username):
         # second_user = user.username
-        the_user = Profile.objects.filter(user__username=username).get()
+        # the_user = Profile.objects.filter(user__username=username).get()
+        the_user = Contestant.objects.filter(profile__user__username=username).get()
 
+        # matchmaking filters
         qlookup_is_second_empty = Q(second_user=None)
-        qlookup_field = Q(first_user__profile__field=the_user.field)
-        qlookup_grade = Q(first_user__profile__grade=the_user.grade)
-        qlookup_level = Q(first_user__profile__level__range=(the_user.level-5,the_user.level+5))
-        qlookup_except_me = ~Q(first_user__profile__user__username=the_user.user.username)
+        qlookup_field = Q(first_user__profile__field=the_user.profile.field)
+        qlookup_grade = Q(first_user__profile__grade=the_user.profile.grade)
+        qlookup_level = Q(first_user__profile__level__range=(the_user.profile.level-5,the_user.profile.level+5))
+        qlookup_except_me = ~Q(first_user__profile__user__username=the_user.profile.user.username)
 
+        # TODO UNLIMIT For VIP Players!!!
+        #Limit Players
+        qlookup_contestant_limit = Q(first_user__profile__user__username=the_user.profile.user.username)|Q(second_user__profile__user__username=the_user.profile.user.username)
+
+        players_live_contests_num = 0
+        for contest in self.get_queryset().filter(qlookup_contestant_limit):
+            players_live_contests_num += 1
+
+        if players_live_contests_num >=5:
+                print("you reached the 5 games limit")
+                return
+        else:
+            pass
+
+        #Check Available Matches
         available_matches = self.get_queryset().filter(qlookup_is_second_empty & qlookup_field & qlookup_grade & qlookup_except_me & qlookup_level)
 
+        # no opponent found in same level range, level will be ignored
+        if not available_matches.exists():
+            available_matches = self.get_queryset().filter(
+                qlookup_is_second_empty & qlookup_field & qlookup_grade & qlookup_except_me).distinct()
+
+        # match found. the user will be the second user in contest
         if available_matches.exists():
-            print(available_matches)
-            return available_matches[0]
+            # not repetitive match!search more and more...
+            for contest in available_matches:
+                print(contest.first_user)
+                if Contest.objects.filter(
+                        Q(first_user=contest.first_user, second_user=the_user) | Q(first_user=the_user,
+                                                                                   second_user=
+                                                                                   contest.first_user)).exists():
+                    if contest==available_matches.last():######check last or finished
+                        print("All contest were repetitive,no opponent found, this opponent will be rooms first_user")
+                        new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
+                        print(new_contest_room)
+                        print(new_contest_room[0])
+                        return new_contest_room[0]
+                    else:
+                        pass
+                elif not Contest.objects.filter(
+                        Q(first_user=contest.first_user, second_user=the_user) | Q(first_user=the_user,
+                                                                                                second_user=
+                                                                                               contest.first_user)).exists():
+                    found_contest = Contest.objects.get(first_user=contest.first_user, second_user=None)
+                    found_contest.second_user = the_user
+                    found_contest.save()
+                    print("Opponent found, this opponent will be rooms second_user")
+                    print(found_contest)
+                    return found_contest
+                else:#does it ever run??????????????????????????????
+                    print("No Opponent found, this opponent will be rooms first_user")
+                    new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
+                    print(new_contest_room)
+                    print(new_contest_room[0])
+                    return new_contest_room[0]
         else:
-            print("no opponent found!")
-            return -1
+            print("No contest exists,No opponent found, this opponent will be rooms first_user")
+            new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
+            print(new_contest_room)
+            print(new_contest_room[0])
+            return new_contest_room[0]
 
-        # second_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='second_user', default=None,
-        #                                 blank=True, null=True)
-
-    # class Meta:
-    #     ordering = ('created',)
-    #
-    # def __str__(self):
-    #     return "{0}: {1}".format(self.created, self.user.username)
 
 
 class Profile(models.Model):
@@ -114,3 +162,28 @@ class Contest(models.Model):
 
     def __str__(self):
         return "{0} vs {1}".format(self.first_user, self.second_user)
+
+
+########################################################################################################################
+# Shop #################################################################################################################
+########################################################################################################################
+class Shop(models.Model):
+    version = models.IntegerField()
+    image = models.URLField()
+    title = models.CharField(max_length=128, blank=True, default='')
+
+    def __str__(self):
+        return "shop_version: {}".format(self.version)
+
+
+class ShopItem(models.Model):
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, default=None)
+    item_id = models.IntegerField(primary_key=True,blank=True,editable=False)
+    title = models.CharField(max_length=128, blank=True, default='')
+    info = models.CharField(max_length=128, blank=True, default='')
+    image = models.URLField()
+    price = models.IntegerField()
+    last_price = models.IntegerField()
+
+    def __str__(self):
+        return "Item ID: {} , Title: {}".format(self.item_id, self.title)

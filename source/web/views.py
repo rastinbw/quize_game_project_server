@@ -21,22 +21,22 @@ def test(request):
 	# #     'hello':new_hello
 	# # }
 
-	user = 'ali'
+	# user = 'ali'
+    #
+	# cache.set(user, {
+	# 	'firstname': 'alireza',
+	# 	'age': 21,
+	# 	'list': [1, 2, 3, 4],
+	# 	'tuple': (1, 2, 3, 4),
+	# 	'dict': {'A': 1, 'B': 2},
+	# }, timeout=1)
+    #
+	# print(cache.get(user))
+	# time.sleep(2)
+	# print(cache.get(user))
 
-	cache.set(user, {
-		'firstname': 'alireza',
-		'age': 21,
-		'list': [1, 2, 3, 4],
-		'tuple': (1, 2, 3, 4),
-		'dict': {'A': 1, 'B': 2},
-	}, timeout=1)
 
-	print(cache.get(user))
-	time.sleep(2)
-	print(cache.get(user))
-
-
-	username = "Rastin"
+	username = "Alireza"
 	Contest.objects.search_opponent(username)
 
 	return HttpResponse("hello")

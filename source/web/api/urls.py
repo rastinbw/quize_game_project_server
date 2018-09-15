@@ -15,7 +15,7 @@ Including another URLconf
 """
 from web.api.socket import views
 from django.urls import path,include
-from web.api.rest.views import registration_views
+from web.api.rest.views import registration_views,shop_views
 
 
 urlpatterns = [
@@ -25,4 +25,7 @@ urlpatterns = [
 	path('generate/', registration_views.generate_private_key),
 	path('chat/', views.index, name="index"),
 	path('chat/<slug:room_name>', views.room, name="room"),
+	###shop
+	path('shop-version/', shop_views.ShopVersion.as_view(), name='shop-version'),
+	path('get-shop/', shop_views.GetShop.as_view(), name='get-shop'),
 ]
