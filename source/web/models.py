@@ -146,6 +146,7 @@ class Contest(models.Model):
     first_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='first_user')
     second_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='second_user', default=None, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
+    CID = models.CharField(max_length=167, )
     # field = models.CharField(max_length=128, blank=True, default='')
     # grade = models.CharField(max_length=128, blank=True, default='')
     # level = models.IntegerField(default=0)

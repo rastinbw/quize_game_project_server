@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 import time
 from web.models import Contest
-
+from web.helpers import Generator
 
 @method_decorator(csrf_exempt, name='dispatch')
 def test(request):
@@ -22,7 +22,7 @@ def test(request):
 	# # }
 
 	# user = 'ali'
-    #
+	#
 	# cache.set(user, {
 	# 	'firstname': 'alireza',
 	# 	'age': 21,
@@ -38,5 +38,4 @@ def test(request):
 
 	username = "Alireza"
 	Contest.objects.search_opponent(username)
-
 	return HttpResponse("hello")
