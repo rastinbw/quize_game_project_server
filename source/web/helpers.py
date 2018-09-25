@@ -16,7 +16,6 @@ from web import models
 from django.contrib.auth.models import User
 from django.db import close_old_connections
 
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "source.settings")
 
 
@@ -187,13 +186,11 @@ class Generator(object):
 		return restriction_info
 
 	@staticmethod
-	def generate_data_for_json(restriction_info, isTokenValid=False, token=None):
-		restriction_info = Generator.generate_data_for_restriction_info()
-		keys = ["isTokenValid", "restriction_info", "token"]
+	def generate_data_for_json(isTokenValid=False, token=None):
+		keys = ["isTokenValid", "token"]
 		data = dict.fromkeys(keys)
 		print("generated dic --> {}".format(data))
 		data['isTokenValid'] = isTokenValid
-		data['restriction_info'] = restriction_info
 		data['token'] = token
 		print("data is generating ... {}".format(data))
 		return data
@@ -213,18 +210,20 @@ class Generator(object):
 		print('kwargs is : {}'.format(kwargs))
 		print('the event is {} and the isTokenValid is {} and the restrictionInfo is {}'.format(
 			kwargs.get('event'), kwargs.get('isTokenValid'), kwargs.get('restrictionInfo')))
-		event = Generator.generate_event_for_json(kwargs.get("event"))
-		data = Generator.generate_data_for_json(kwargs.get("restrictionInfo"), kwargs.get("isTokenValid"),
-												kwargs.get("token"))
-		notifs = Generator.generate_notifs_for_json(kwargs.get("appUpdate"), kwargs.get("serverMessage"))
-
+		event = Generator.generate_event_for_json(kwargs.get('event'))
+		data = Generator.generate_data_for_json(kwargs.get('isTokenValid'),
+												kwargs.get('token'))
+		restriction = Generator.generate_data_for_restriction_info(kwargs.get('isGuest'), kwargs.get('unBanDate'))
+		notifs = Generator.generate_notifs_for_json(kwargs.get('appUpdate'), kwargs.get('serverMessage'))
 		message = dict(message={**event,
 								'data': data,
-								'notifs': notifs})
+								'notifs': notifs,
+								'restriction': restriction})
 		result_encoder = json.JSONEncoder()
 		result_encoder = result_encoder.encode(message)
 		print('the result encoded JSON: {}'.format(result_encoder))
 		return result_encoder
+
 
 # TODO build a cid generator and add it as the route for the user
 # it must be combinition of user + uuid(16bit)

@@ -209,16 +209,8 @@ class ChatConsumer(AsyncConsumer):
 					"type": "websocket.send", "text":
 					str(
 						helpers.Generator.generate_socket_send_json(
-							event=consts.onconnect_check,
-							### resteriction info ###
-							isGuest=False,
-							unBanDate=None,
-							#####data######
+							event=consts.user_update_token,
 							isTokenValid=True,
-							token=None,
-							### notifs ###
-							appUpdate=None,
-							serverMessage=None,
 						)
 					)
 				}

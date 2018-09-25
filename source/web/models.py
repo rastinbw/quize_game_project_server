@@ -33,7 +33,6 @@ class PurgeManager(models.Manager):
 		qlookup_level = Q(first_user__profile__level__range=(the_user.profile.level - 5, the_user.profile.level + 5))
 		qlookup_except_me = ~Q(first_user__profile__user__username=the_user.profile.user.username)
 
-		# TODO UNLIMIT For VIP Players!!!
 		# Limit Players
 		qlookup_contestant_limit = Q(first_user__profile__user__username=the_user.profile.user.username) | Q(
 			second_user__profile__user__username=the_user.profile.user.username)
@@ -68,7 +67,10 @@ class PurgeManager(models.Manager):
 																				   contest.first_user)).exists():
 					if contest == available_matches.last():  ######check last or finished
 						print("All contest were repetitive,no opponent found, this opponent will be rooms first_user")
-						new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
+						the_uuid = str(uuid4().hex[:16])
+						f_user = str(the_user)
+						CID = f_user + the_uuid
+						new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None, CID=CID)
 						print(new_contest_room)
 						print(new_contest_room[0])
 						return new_contest_room[0]
@@ -78,21 +80,25 @@ class PurgeManager(models.Manager):
 						Q(first_user=contest.first_user, second_user=the_user) | Q(first_user=the_user,
 																				   second_user=
 																				   contest.first_user)).exists():
-					found_contest = Contest.objects.get(first_user=contest.first_user, second_user=None)
+					found_contest = Contest.objects.filter(first_user=contest.first_user, second_user=None).first()
 					found_contest.second_user = the_user
 					found_contest.save()
 					print("Opponent found, this opponent will be rooms second_user")
 					print(found_contest)
 					return found_contest
-				else:  # does it ever run??????????????????????????????
-					print("No Opponent found, this opponent will be rooms first_user")
-					new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
-					print(new_contest_room)
-					print(new_contest_room[0])
-					return new_contest_room[0]
+		# else:#does it ever run??????????????????????????????
+		#     print("No Opponent found, this opponent will be rooms first_user")
+		#     new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
+		#     print(new_contest_room)
+		#     print(new_contest_room[0])
+		#     return new_contest_room[0]
 		else:
 			print("No contest exists,No opponent found, this opponent will be rooms first_user")
-			new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None)
+			the_uuid = str(uuid4().hex[:16])
+			f_user = str(the_user)
+			CID = f_user + the_uuid
+			new_contest_room = Contest.objects.get_or_create(first_user=the_user, second_user=None, CID=CID)
+
 			print(new_contest_room)
 			print(new_contest_room[0])
 			return new_contest_room[0]
@@ -143,17 +149,16 @@ class Contestant(models.Model):
 
 
 class Contest(models.Model):
-	# TODO do the related__name stuff
 	first_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='first_user')
 	second_user = models.ForeignKey(Contestant, on_delete=models.CASCADE, related_name='second_user', default=None,
 									blank=True, null=True)
 	created = models.DateTimeField(auto_now_add=True, auto_now=False)
-	CID = models.CharField(max_length=167, default=None)
-
-	def save(self, *args, **kwargs):
-		the_uuid = str(uuid4().hex[:16])
-		first_user = str(User.objects.filter(username=self.first_user).get().username)
-		self.CID = first_user + the_uuid
+	CID = models.CharField(max_length=167, default=None, blank=True)
+	#
+	# def save(self, *args, **kwargs):
+	#     the_uuid = str(uuid4().hex[:16])
+	#     first_user = str(User.objects.filter(username=self.first_user).get().username)
+	#     self.CID = first_user + the_uuid
 
 	# field = models.CharField(max_length=128, blank=True, default='')
 	# grade = models.CharField(max_length=128, blank=True, default='')
@@ -178,7 +183,7 @@ class Contest(models.Model):
 ########################################################################################################################
 class Shop(models.Model):
 	version = models.IntegerField()
-	image = models.URLField()
+	image = models.ImageField(upload_to='static/images/shop/', default='static/images/shop/money.jpg')
 	title = models.CharField(max_length=128, blank=True, default='')
 
 	def __str__(self):
@@ -190,9 +195,18 @@ class ShopItem(models.Model):
 	item_id = models.IntegerField(primary_key=True, blank=True, editable=False)
 	title = models.CharField(max_length=128, blank=True, default='')
 	info = models.CharField(max_length=128, blank=True, default='')
-	image = models.URLField()
+	image = models.ImageField(upload_to='static/images/shop/', default='static/images/shop/money.jpg')
 	price = models.IntegerField()
 	last_price = models.IntegerField()
 
 	def __str__(self):
 		return "Item ID: {} , Title: {}".format(self.item_id, self.title)
+
+
+###########################################################################################################
+class City(models.Model):
+	province = models.CharField(max_length=128, blank=True, default='')
+	city = models.CharField(max_length=128, blank=True, default='')
+
+	def str(self):
+		return self.city

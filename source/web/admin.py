@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Token, Profile, Contestant, Contest, Shop, ShopItem
+from .models import Token, Profile, Contestant, Contest, Shop, ShopItem, City
 
 # Register your models here.
 
@@ -14,3 +14,4 @@ admin.site.register(Contestant)
 admin.site.register(Contest)
 admin.site.register(Shop)
 admin.site.register(ShopItem)
+admin.site.register(City)

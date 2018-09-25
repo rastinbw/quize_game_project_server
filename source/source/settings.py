@@ -60,6 +60,7 @@ ROOT_URLCONF = 'source.urls'
 # ASGI and channel layer settings
 
 ASGI_APPLICATION = 'source.routing.application'
+# WSGI_APPLICATION = 'source.wsgi.application'
 
 CHANNEL_LAYERS = {
 	'default': {
@@ -69,6 +70,7 @@ CHANNEL_LAYERS = {
 		},
 	},
 }
+
 
 TEMPLATES = [
 	{
@@ -90,7 +92,7 @@ CRON_CLASSES = [
 	"web.manager.tasks.BarzakhChecker",
 ]
 
-WSGI_APPLICATION = 'source.wsgi.application'
+
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
@@ -161,3 +163,7 @@ CELERY_BEAT_SCHEDULE = {
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+    '/var/www/static/',
+]
