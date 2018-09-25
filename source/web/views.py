@@ -36,6 +36,6 @@ def test(request):
 	# print(cache.get(user))
 
 
-	username = "Alireza"
+	username = "Jafar"
 	Contest.objects.search_opponent(username)
 	return HttpResponse("hello")

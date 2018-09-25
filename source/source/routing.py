@@ -7,11 +7,9 @@ from web.api.socket import consumers
 
 
 application = ProtocolTypeRouter({
-    'websocket': AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
+    'websocket': AuthMiddlewareStack(
             URLRouter(
                web.api.socket.routing.websocket_urlpatterns,
             )
         )
-    )
 })

@@ -205,7 +205,9 @@ class ChatConsumer(AsyncConsumer):
 					str(
 						helpers.Generator.generate_socket_send_json(
 							event=consts.user_update_token,
-							isTokenValid=True)
+							isTokenValid=True,
+							isGuest=True
+						)
 					)
 				}
 			)
