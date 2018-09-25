@@ -31,6 +31,8 @@ class ChatConsumer(AsyncConsumer):
 				'type': 'websocket.accept'
 			}
 		)
+		the_user = self.scope['user']
+		print('this user on conncet -----> {}'.format(the_user))
 		'''
 				try:
 			for group in self.groups:
@@ -122,10 +124,10 @@ class ChatConsumer(AsyncConsumer):
 								}
 				}
 			'''
-		message = text_data['message']
+		message = json.loads(text_data)
 		data = message['data']
-		user_name = data['username']
-		app_version = data['appVersion']
+		# user_name = data['username']
+		# app_version = data['appVersion']
 		# dictioanry = {
 		# 	'event': consts.user_update_info_splash,
 		# 	'isTokenValid': True,
@@ -142,12 +144,12 @@ class ChatConsumer(AsyncConsumer):
 				str(
 					helpers.Generator.generate_socket_send_json(
 						event=consts.user_update_info_splash,
+						### resteriction info ###
+						isGuest=True,
+						unBanDate=None,
+						#####data######
 						isTokenValid=True,
 						token=None,
-						restrictionInfo=None,
-						### resteriction info ###
-						isGuest=False,
-						unBanDate=None,
 						### notifs ###
 						appUpdate=None,
 						serverMessage=None, )
@@ -159,11 +161,14 @@ class ChatConsumer(AsyncConsumer):
 			'message': {
 				'data': {
 					'username': 'alireza',
-					'token': '673fe3b39c7346e89ce6d17c18956596'
+					'token': '145d13c20f764327b6db58b0adbf1c19'
 				}
 			}
 		}
 		'''
+		this_user = Profile.objects.filter(user=self.scope['user']).get()
+		print('onconnect event ... user --> {}'.format(this_user))
+		#TODO you should add the user info to the json
 		json_object = json.loads(event_message)
 		token = json_object['data']['token']
 		user_name = json_object['data']['username']
@@ -175,7 +180,7 @@ class ChatConsumer(AsyncConsumer):
 				}
 			)
 		if User.objects.filter(username=user_name).exists() and not Token.objects.filter(token=token).exists():
-			user = User.objects.get(username=user_name);
+			user = User.objects.get(username=user_name)
 			old_token = Token.objects.get(user=user)
 			old_token.delete()
 			new_token = Token.objects.create(user=user)
@@ -190,7 +195,7 @@ class ChatConsumer(AsyncConsumer):
 							token=str(new_token),
 							restrictionInfo=None,
 							### resteriction info ###
-							isGuest=False,
+							isGuest=this_user.guest,
 							unBanDate=None,
 							### notifs ###
 							appUpdate=None,
@@ -204,35 +209,67 @@ class ChatConsumer(AsyncConsumer):
 					"type": "websocket.send", "text":
 					str(
 						helpers.Generator.generate_socket_send_json(
-							event=consts.user_update_token,
-							isTokenValid=True)
+							event=consts.onconnect_check,
+							### resteriction info ###
+							isGuest=False,
+							unBanDate=None,
+							#####data######
+							isTokenValid=True,
+							token=None,
+							### notifs ###
+							appUpdate=None,
+							serverMessage=None,
+						)
 					)
 				}
 			)
 
 	async def get_or_new_contest(self):
 		this_user = User.objects.get(username=self.scope['user'])
-		this_user_contestant = Contestant.objects.create(Profile.objects.filter(user=this_user).get())
+		Contestant.objects.create(Profile.objects.filter(user=this_user))
 		contest = Contest.objects.search_opponent(this_user)
-		if contest.first_user == this_user_contestant:
-			return contest
-		else:
-			contest.second_user = this_user
-			return contest
+		return contest
 
 	# Receive message from WebSocket
 	async def websocket_receive(self, text_message):
+		this_user = self.scope['user']
+		print('the user is : {}'.format(this_user))
+
 		text_data_json = json.loads(text_message['text'])
 		message = text_data_json['message']
 		event = message['event']
+
+		########## Conditions #############
+		#### 1 - onconnect ####
+
 		if event == consts.onconnect_check:
+			print('message before dumps and before delete event: {}'.format(message))
 			del message['event']
-			print('message before dumps: {}'.format(message))
 			message = json.dumps(message)
 			print('message after dumps: {}'.format(message))
 			await self.onconnect_check(message)
+		#### 2 - user_update_info ####
+
 		if event == consts.user_update_info_splash:
-			await self.user_splash_json_update(text_message)
+			del message['event']
+			message = json.dumps(message)
+			await self.user_splash_json_update(message)
+		#### 3 - new_game ####
+
+		if event == consts.new_game:
+			del message['event']
+			message = json.dumps(message)
+			contest = await self.get_or_new_contest()
+			if contest.first_user == self.scope['user'] and contest.second_user is None:
+				await self.channel_layer.group_add(
+					contest.CID,
+					self.channel_name,
+				)
+			if contest.first_user == self.scope['user'] and contest.second_user is not None:
+				await self.channel_layer.group_add(
+					contest.CID,
+					self.channel_layer,
+				)
 
 
 # # Send message to room group
@@ -251,8 +288,5 @@ class TestConsumer(AsyncWebsocketConsumer):
 		pass
 
 	async def receive(self, text_data=None, bytes_data=None):
-		# text_data_json = json.loads(text_data)
-		# message = text_data_json['message']
-		# message = json.dumps(dict(message=message))
 		print('Json object :' + text_data)
 		await self.send(text_data)

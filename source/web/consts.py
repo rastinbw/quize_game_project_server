@@ -21,3 +21,4 @@ invalid_token = 1206
 onconnect_check = 'ONCONNECT'
 user_update_info_splash = 'updateUserInfo_splash'
 user_update_token = 'update_user_token'
+new_game = 'NEWGAME'

@@ -13,6 +13,9 @@ import os
 from random import randint
 from web import consts
 from web import models
+from django.contrib.auth.models import User
+from django.db import close_old_connections
+
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "source.settings")
 
@@ -180,6 +183,7 @@ class Generator(object):
 		restriction_info = dict.fromkeys(keys)
 		restriction_info["isGuest"] = isGuest
 		restriction_info["unBanDate"] = unBanDate
+		print("restriction is gerating ...{}".format(restriction_info))
 		return restriction_info
 
 	@staticmethod
@@ -187,9 +191,11 @@ class Generator(object):
 		restriction_info = Generator.generate_data_for_restriction_info()
 		keys = ["isTokenValid", "restriction_info", "token"]
 		data = dict.fromkeys(keys)
-		data["isTokenValid"] = isTokenValid
-		data["restriction_info"] = restriction_info
-		data["token"] = token
+		print("generated dic --> {}".format(data))
+		data['isTokenValid'] = isTokenValid
+		data['restriction_info'] = restriction_info
+		data['token'] = token
+		print("data is generating ... {}".format(data))
 		return data
 
 	@staticmethod
@@ -198,14 +204,19 @@ class Generator(object):
 		notifs = dict.fromkeys(keys)
 		notifs["appUpdate"] = appUpdate
 		notifs["serverMessage"] = serverMessage
+		print("notifs is generating ... {}".format(notifs))
 		return notifs
 
 	@staticmethod
 	def generate_socket_send_json(**kwargs):
-		event = Generator.generate_event_for_json(kwargs.get('event'))
-		data = Generator.generate_data_for_json(kwargs.get('isTokenValid'), kwargs.get('restrictionInfo'),
-												kwargs.get('token'))
-		notifs = Generator.generate_notifs_for_json(kwargs.get('appUpdate'), kwargs.get('serverMessage'))
+		print('hello')
+		print('kwargs is : {}'.format(kwargs))
+		print('the event is {} and the isTokenValid is {} and the restrictionInfo is {}'.format(
+			kwargs.get('event'), kwargs.get('isTokenValid'), kwargs.get('restrictionInfo')))
+		event = Generator.generate_event_for_json(kwargs.get("event"))
+		data = Generator.generate_data_for_json(kwargs.get("restrictionInfo"), kwargs.get("isTokenValid"),
+												kwargs.get("token"))
+		notifs = Generator.generate_notifs_for_json(kwargs.get("appUpdate"), kwargs.get("serverMessage"))
 
 		message = dict(message={**event,
 								'data': data,
@@ -215,13 +226,26 @@ class Generator(object):
 		print('the result encoded JSON: {}'.format(result_encoder))
 		return result_encoder
 
-	# TODO build a cid generator and add it as the route for the user
-	# it must be combinition of user + uuid(16bit)
+# TODO build a cid generator and add it as the route for the user
+# it must be combinition of user + uuid(16bit)
 
-	@staticmethod
-	def generate_contest_id(user_name):
-		socket_link = Generator.generate_uuid(models.Contest, 'CID')[:16]
-		this_user = models.User.objects.filter(username=user_name).get()
-		socket_link_uuid = str(this_user.username) + socket_link
-		print("the user uuid is : {}".format(socket_link_uuid))
-		return socket_link_uuid
+
+class QueryAuthMiddleware:
+	"""
+	Custom middleware (insecure) that takes user IDs from the query string.
+	"""
+
+	def __init__(self, inner):
+		# Store the ASGI application we were passed
+		self.inner = inner
+
+	def __call__(self, scope):
+		# Look up user from query string (you should also do things like
+		# check it's a valid user ID, or if scope["user"] is already populated)
+		# id = scope['url_route']['kwargs']['room_name']
+		print(scope['query_string'])
+		username = str(scope['query_string']).split('=')[1].replace('\'', '')
+		user = User.objects.get(username=username)
+		close_old_connections()
+		# Return the inner application directly and let it run everything else
+		return self.inner(dict(scope, user=user))
